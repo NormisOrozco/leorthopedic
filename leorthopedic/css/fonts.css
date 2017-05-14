@@ -1,0 +1,44 @@
+@font-face {
+    font-family: 'IcoMoon-Free';
+    src: url('fonts/IcoMoon-Free.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+	[class^="icon-"], [class*=" icon-"] {
+        font-family: 'IcoMoon-Free' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    color: #235A56;
+    padding: 0.3em;
+    float: left;
+        -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+.icon-casa:before {
+    content: "\e900";
+}
+.icon-lapiz:before {
+    content: "\e906";
+}
+.icon-productos:before {
+    content: "\e935";
+}
+.icon-menu:before {
+    content: "\e9bd";
+}
+.icon-mail:before {
+    content: "\ea84";
+}
+.icon-telefono:before {
+    content: "\e942";
+}
+.icon-quien:before {
+    content: "\ea09";
+}

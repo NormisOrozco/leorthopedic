@@ -1,0 +1,42 @@
+@font-face {
+    font-family: 'IcoMoon-Free';
+    src: url('fonts/IcoMoon-Free.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+	[class^="icon-"], [class*=" icon-"] {
+        font-family: 'IcoMoon-Free' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    float: left;
+        -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+.icon-modificar:before{
+    content: "\e905";
+}
+.icon-quitar:before{
+    content: "\ea0f";
+}
+.icon-agregar:before {
+    content: "\ea10";
+}
+.icon-empezar:before {
+    content: "\ea42";
+}
+.icon-info:before {
+    content: "\ea0c";
+}
+.icon-search:before{
+    content: "\e986";
+}
+.icon-print:before{
+    content: "\e954";
+}
