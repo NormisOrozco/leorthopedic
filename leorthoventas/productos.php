@@ -8,27 +8,11 @@
 	<title>PRODUCTOS EN STOCK</title>
 </head>
 <body>
-<header>
-	<nav>
-		<ul>
-			<li><a href="index.html">
-                Ventas
-            </a></li>
-            <li><a href="entradas.html">
-                Entradas
-            </a></li>
-            <li><a href="productos.html">
-                Productos
-            </a></li>
-            <li><a href="generar.html">
-                Generar
-			</a></li>
-			<li><a href="gastos.html">
-				Gastos
-			</a></li>
-		</ul>
-	</nav>
-</header>
+<nav>
+	<?php
+	require_once("menu.php");
+	?>
+</nav>
 	
 	<div class="divtop">
 		<label for="" >PRODUCTOS EN STOCK</label>

@@ -8,28 +8,12 @@
 	<title>GASTOS EXTRAS</title>
 </head>
 <body>
-<header>
-	<nav>
-		<ul>
-			<li><a href="index.html">
-                Ventas
-            </a></li>
-            <li><a href="entradas.html">
-                Entradas
-            </a></li>
-            <li><a href="productos.html">
-                Productos
-            </a></li>
-            <li><a href="generar.html">
-                Generar
-			</a></li>
-			<li><a href="gastos.html">
-				Gastos
-			</a></li>
-		</ul>
-	</nav>
-</header>
 <body>
+<nav>
+	<?php
+	require_once("menu.php");
+	?>
+</nav>
  	<div class="divtop"><label for="">GASTOS</label></div>
  	<div id="divgastos">
 		<label class="titcol">Concepto</label>

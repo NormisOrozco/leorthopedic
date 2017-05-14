@@ -3,27 +3,24 @@ body{
     margin: 0;
     font-family: "Segoe UI";
 }
-header{
+.menu-bar{
     background: #88c399;
     text-align: center;
-}
-header nav{
     width: 100%;
-    margin-left: -40px;
 }
-header nav ul li{
+.menu-bar ul li{
     display: inline-block;
     padding: 1em;
     width: 15%;
     box-sizing: border-box;
 }
-header nav ul li a{
+.menu-bar ul li a{
     text-decoration: none;
     color: white;
     padding: 0.5em 30% 0.5em 30%;
 }
 
-header nav ul li:hover{
+.menu-bar ul li:hover{
     box-shadow: 0px 0px 5px;
     background: #6a9877;
     border-radius: 2px;
