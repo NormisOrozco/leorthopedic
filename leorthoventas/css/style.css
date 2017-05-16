@@ -759,3 +759,41 @@ header #labrep{
     bottom: 90px;
     left: 15%;
 }
+
+#btn_canc{
+    padding: 0.5em;
+    background: #ff7d7d;
+    border: solid 1px #cd4f4f;
+    border-radius: 3px;
+    color: white;
+    font-size: 1.2em;
+}
+
+#btn_canc:hover{
+    background: #d95454;
+    border: solid 1px #ff0000;
+}
+
+#btn_term{
+    padding: 0.5em;
+    background: #8aae94;
+    border: solid 1px #467553;
+    border-radius: 3px;
+    color: white;
+    font-size: 1.2em;
+    margin-left: 50%;
+}
+
+#btn_canc span{
+    padding-right: 0.5em;
+}
+
+#btn_term span{
+    padding-right: 0.5em;
+}
+
+#btn_term:hover{
+    background: #467553;
+    border: solid 1px #30543a;
+    border-radius: 3px;
+}

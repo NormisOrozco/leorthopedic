@@ -5,6 +5,7 @@
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="css/fonts.css">
 	<script type="text/javascript" src="js/script.js"></script>
+	<script type="text/javascript" src="js/jquery.validate.js"></script>
 	<title>VENTAS LEORTHOPEDIC</title>
 </head>
 <body>
@@ -19,7 +20,7 @@
 	</div>
 	<form action="" id="form_uno">
 		<label for="">Cliente</label><br>
-		<input type="text" placeholder="Nombre del Cliente" id="campo_nombre"/><br>
+		<input type="text" placeholder="Nombre del Cliente" id="campo_nombre" name="campo_nombre"/><br>
 		<div class="boton" onclick="empieza()"><span class="icon-empezar"></span>Empezar
 		</div>
 	</form>
@@ -39,10 +40,10 @@
 			</tr>
 			<tr>
 				<td>
-					<input class="campo_in" type="text"/>
+					<input class="campo_in" type="text" name="campo_codigo"/>
 				</td>
 				<td>
-					<input class="campo_in" type="text"/>
+					<input class="campo_in" type="text" name="campo_cantidad"/>
 				</td>
 				<td>
 					<div  class="boton"><span class="icon-agregar"></span>Agregar</div>
@@ -78,6 +79,32 @@
 				<td><label for="" class="lbl_total"></label></td>
 			</tr>
 		</table>
+		<button id="btn_canc"><span class="icon-quitar" ></span>Cancelar</button>
+		<button id="btn_term"><span class="icon-agregar" ></span>Terminar</button>
 	</div> 
 </body>
+<script type="text/javascript">
+	$("#form_uno").validate({
+			errorClass:"invalid",
+			rules:{
+				campo_nombre:{required:true},
+			},
+			messages:{
+				nombre:{required:"Introduzca un nombre para el cliente."},
+			},
+			submitHandler: empieza();
+		});
+	$("#form_dos").validate({
+			errorClass:"invalid",
+			rules:{
+				campo_codigo:{required:true},
+				campo_cantidad:{required:true},
+			},
+			messages:{
+				campo_codigo:{required:"Introduzca el código del producto."},
+				campo_cantidad:{required:"Especifique la cantidad de productos."},
+			},
+			submitHandler: nva_venta();
+		});
+</script>
 </html>

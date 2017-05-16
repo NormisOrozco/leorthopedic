@@ -24,14 +24,6 @@ CREATE TABLE lapsos (
  	id_lapso INT PRIMARY KEY AUTO_INCREMENT,
  	descripcion VARCHAR(45));
 
-CREATE TABLE devoluciones(
-	id_devol INT PRIMARY KEY AUTO_INCREMENT,
-	id_ticket INT NOT NULL,
-	id_producto INT NOT NULL,
-	valor FLOAT NOT NULL,
-	causa TEXT(200) NOT NULL,
-	fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
-
 CREATE TABLE productos (
 	id_producto INT PRIMARY KEY AUTO_INCREMENT, 
 	codigo VARCHAR(45) UNIQUE NOT NULL,
@@ -292,6 +284,21 @@ BEGIN
 END;
 
 
+=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:PROCEDIMIENTO PARA  REALIZAR UNA CANCELACION
+
+DELIMITER //
+CREATE PROCEDURE nva_cancel (
+	pid_venta INT)
+BEGIN
+ 	DECLARE vid_prod INT;
+ 	DECLARE v_cantidad INT;
+ 	SELECT cantidad from ventas WHERE id_venta=pid_venta;
+ 	SELECT id_producto into vid_prod FROM productos, ventas, tickets WHERE  productos.codigo=p_codigo and productos.id_producto=ventas.id_producto and ventas.id_venta=pid_venta;
+	UPDATE productos set existencias=existencias+p_cantidad where WHERE  productos.id_producto=vid_prod; # SE AGREGAN LA CANTIDAD DE ARTICULOS AL IVENTARIO
+	delete ventas WHERE ventas.id_venta=pid_venta;
+END;
+
+
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:PROCEDIMIENTO PARA  REALIZAR UNA DEVOLUCION
 
 DELIMITER //
@@ -305,16 +312,16 @@ BEGIN
  	DECLARE v_cantidad INT;
  	DECLARE v_subtotal FLOAT;
 SELECT id_producto into vid_prod FROM productos, ventas, tickets WHERE  productos.codigo=p_codigo and productos.id_producto=ventas.id_producto and ventas.id_ticket=pid_ticket;
-SELECT cantidad into v_cantidad FROM productos, ventas, tickets WHERE  productos.codigo=p_codigo and productos.id_producto=ventas.id_producto and ventas.id_ticket=pid_ticket;
+SELECT cantidad into v_cantidad FROM productos, ventas, tickets WHERE  productos.id_producto=vid_prod and productos.id_producto=ventas.id_producto and ventas.id_ticket=pid_ticket;
 	IF vid_prod=NULL
 		then
 			signal sqlstate '45000' set message_text ='DATOS DE CÓDIGO O FOLIO INCORRECTOS, VERIFIQUE.';
 		else
 			IF v_cantidad<=p_cantidad
 			then
-				UPDATE ventas set cantidad=cantidad-v_cantidad where id_ticket=pid_ticket and id_producto=vid_prod;
-				SELECT precio_venta*p_cantidad into v_subtotal from productos, ventas, tickets where WHERE  productos.codigo=p_codigo and productos.id_producto=ventas.id_producto and ventas.id_ticket=pid_ticket;
-				INSERT INTO devoluciones (NULL, pid_ticket, vid_prod, v_subtotal, p_causa, NULL);
+				UPDATE ventas set cantidad=cantidad-v_cantidad where id_ticket=pid_ticket and id_producto=vid_prod; #E RESTA LA CANTIDAD DE´PRODUCTOS DEVUELTOS A LA VENTA QUE SE REALIZO
+				UPDATE productos set existencias=existencias+p_cantidad where WHERE  productos.id_producto=vid_prod; # SE AGREGAN LA CANTIDAD DE ARTICULOS AL IVENTARIO
+				SELECT precio_venta*p_cantidad into v_subtotal from productos, ventas, tickets where WHERE  productos.codigo=p_codigo and productos.id_producto=ventas.id_producto and ventas.id_ticket=pid_ticket; #SE OBTIENE CUÁNTO SE LE HA DE REGRESAR AL CLIENTE
 				SELECT ('DEVOLUCIÓN PROCESADA, ENTREGUE AL CLIENTE LA CANTIDAD DE $'+v_subtotal+' PESOS.');
 			else
 				signal sqlstate '45000' set message_text='ESA CANTIDAD DE PRODUCTOS A DEVOLVER NO ES CORRECTA.';
@@ -381,6 +388,15 @@ CREATE TABLE bit_cancelaciones(
 	producto VARCHAR(45),
 	cuantos INT NOT NULL,
 	valor FLOAT NOT NULL,
+	cliente VARCHAR(45));
+
+#Ates de realizar la devolucion
+CREATE TABLE bit_devoluciones(
+	idbit_dev INT PRIMARY KEY AUTO_INCREMENT,
+	cuando TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	producto VARCHAR(45),
+	cuantos INT NOT NULL,
+	valor FLOAT NOT NULL,
 	cliente VARCHAR(45),
 	por_que VARCHAR(100));
 
@@ -408,12 +424,17 @@ CREATE TRIGGER bcm #BITACORA DE CORTES DE CAJA MAL EQUILIBRADOS
 	insert into bit_cortesmal VALUES(NULL, NULL, old.descripcion_p, NULL, old.precio_adq);
 	END bcm;
 
-CREATE TRIGGER bcanc{
+CREATE TRIGGER bcanc{ #BITACORA DE CANCELACIONES
 	before delete on ventas
 	for each row
 	BEGIN
 }
 
+CREATE TRIGGER bcanc{ #BITACORA DE DEVOLUCIONES
+	before UPDATE on ventas
+	for each row
+	BEGIN
+}
 
 
 :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:= PROCEDIMIENTOS PARA VISTAS :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=

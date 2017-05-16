@@ -5,6 +5,7 @@
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="css/fonts.css">
 	<script type="text/javascript" src="js/script.js"></script>
+	<script type="text/javascript" src="js/jquery.validate.js"></script>
 	<title>PRODUCTOS EN STOCK</title>
 </head>
 <body>
