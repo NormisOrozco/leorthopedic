@@ -234,8 +234,11 @@ body{
 
 #btn_acept{
     font-size:1em;
-    width: 100px;
-    margin-left: 0;
+    width: 100%;
+    padding: 0.5em 0.4em;
+}
+#btn_acept, span{
+    margin: 0;
 }
 
 #in_search{
@@ -531,7 +534,7 @@ body{
     box-sizing: border-box;
 }
 #form_ent label{
-    font-size: 2em;
+    font-size: .8em;
 }
 
 #form_ent table{
@@ -544,7 +547,7 @@ body{
     border: none;
     border-radius: 3px;
     background-color: whitesmoke;
-    margin: 1em;
+    margin:0.5em;
 }
 
 #divent{
@@ -579,7 +582,7 @@ body{
 #divent table span{
     width: 16px;
     padding: 2px;
-    margin-left: 6px;
+    margin-left: 4px;
 }
 
 #btn_acept{
@@ -796,4 +799,10 @@ header #labrep{
     background: #467553;
     border: solid 1px #30543a;
     border-radius: 3px;
+}
+
+.invalid{
+    font-weight: lighter;
+    color: red;
+    
 }

@@ -461,3 +461,17 @@ DECLARE vid_ticket INT;
 		productos.id_producto=ventas.id_producto and
 		ventas.id_ticket=vid_ticket;
 END;
+
+#VISTA QUE MUESTRA ID_PRODUCTO, NOMBRE, CANTIDAD, FECHA, OBSERACIONES
+CREATE VIEW v_entradas as(
+SELECT 
+	id_producto, 
+	descripcion_p as 'producto',
+	entradas.cantidad as 'cantidad',
+	entradas.fecha as 'fecha',
+	entradas.observaciones as observaciones
+FROM
+	productos,
+	entradas
+WHERE
+	entradas.id_producto=productos.id_producto);
