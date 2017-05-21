@@ -13,9 +13,6 @@
             <li><a href="generar.php">
                 Generar
 			</a></li>
-			<li><a href="devoluciones.php">
-				Devolución
-			</a></li>
 		</ul>
 		</nav>
 </div>

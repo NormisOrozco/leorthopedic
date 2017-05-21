@@ -26,6 +26,25 @@
 		case 'get_one':
 			$sql='select *from alumnos where id_alumno="'.$_POST["id_alumno"].'";';
 			break;*/
+		case 'insert_tkt':
+			#inserta un nuevo ticket en la base de datos
+			break;
+
+		case 'isert_vta':
+			#ingresa una nueva venta en el ticket
+			break;
+
+		case 'update':
+			#actualiza la cantidad de productos en una venta
+			break;
+		case 'cancel':
+			#cancela una venta y la bitacora
+			break;
+
+		case 'finish':
+			#termina la venta y calcula el ticket
+			break;
+
 		default:
 			# code...
 			break;

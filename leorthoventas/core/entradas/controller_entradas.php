@@ -22,6 +22,12 @@
 			$conexion->query($sql);
 
 			break;
+		case 'insert':
+			$codigo=$_POST['codigo'];
+			$cantidad=$_POST['cantidad'];
+			$costo=$_POST['costo'];
+			$observaciones=$_POST['observaciones'];
+			$sql='call nva_ent('.$codigo.','.$cantidad.','.$costo.',"'.$observaciones.'");'
 		/*
 		case 'get_one':
 			$sql='select *from alumnos where id_alumno="'.$_POST["id_alumno"].'";';
