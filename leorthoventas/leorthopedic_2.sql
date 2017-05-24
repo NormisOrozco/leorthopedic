@@ -59,39 +59,41 @@ CREATE TABLE ventas (
 	id_producto INT NOT NULL, 
 	cantidad INT DEFAULT 1, 
 	id_ticket INT NOT NULL, 
-	observaciones TEXT(100),
 	subtotal FLOAT NOT NULL);
 
 
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:PROCEDIMIENTO PARA NUEVA ENTRADA 
 DELIMITER //
 CREATE PROCEDURE nva_ent(
-  IN p_codigo INT,
-  IN p_cant INT,
-  IN p_costo FLOAT,
-  IN p_observ TEXT(100))
+  p_codigo INT,
+  p_cant INT,
+  p_costo FLOAT,
+  p_observ TEXT(100))
 BEGIN
 DECLARE vid_prod INT;
 	SELECT id_producto into vid_prod FROM productos WHERE  productos.codigo=p_codigo;
-	IF vid_prod=NULL
+	IF p_cant<=0
 		then
-		signal sqlstate '45000' set message_text ='ESE PRODUCTO NO ESTÁ REGISTRADO.';
+		signal sqlstate '45000' set message_text ='LA CANTIDAD DE PRODUCTOS NO ES CORRECTA.';
 		else
-			IF p_cant<=0
+			IF p_costo<=0
 				then
-				signal sqlstate '45000' set message_text ='LA CANTIDAD DE PRODUCTOS NO ES CORRECTA.';
+				signal sqlstate '45000' set message_text = 'EL COSTO DE PRODUCTO NO ES CORRECTO.';
 				else
-					IF p_costo<=0
-						then
-						signal sqlstate '45000' set message_text = 'EL COSTO DE PRODUCTO NO ES CORRECTO.';
-						else
-						  INSERT INTO entradas VALUES(NULL, vid_prod, p_codigo, p_cant, p_costo, p_observ, NULL);
+				IF vid_prod=NULL
+					then
+					signal sqlstate '45000' set message_text ='ESE PRODUCTO NO ESTÁ REGISTRADO.';
+					else
+						  INSERT INTO entradas VALUES(NULL, vid_prod, p_cant, p_costo, p_observ, NULL);
 						  UPDATE productos set existencias=existencias+p_cant WHERE productos.codigo=p_codigo;
 						  SELECT ('NUEVA ENTRADA REGISTRADA.');
-					end if;
-			end if;
+				end if;
+		end if;
 	end if;
 END;
+
+
+#CREADO 
 
 se llama 
 
@@ -106,14 +108,14 @@ BEGIN
   INSERT INTO tickets VALUES(NULL, p_cliente, 0, NULL, 0);
   SELECT ('OK');
 END;
-
+#CREADO
 call nva_ent("Marco Alejandro"); #SE MANDA EL NOMBRE OBTENIDO POR EL FORMULARIO
 
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=: PROCEDIMIENTO PARA HACER UNA VENTA
 
 DELIMITER //
 CREATE PROCEDURE nva_venta(
-  p_codigo INT,
+  p_codigo VARCHAR(45),
   p_cantidad INT)
 BEGIN
 DECLARE vid_prod INT;
@@ -121,11 +123,12 @@ DECLARE v_prod INT;
 DECLARE v_precio FLOAT;
 DECLARE v_subtotal FLOAT;
 DECLARE v_ticket INT;
+DECLARE v_disponibles INT;
 SET vid_prod=0;
 SET v_precio=0;
 SET v_subtotal=0;
 SET v_ticket=0;
-SET v_disponbles=0;
+SET v_disponibles=0;
 	SELECT id_producto into vid_prod FROM productos WHERE  productos.codigo=p_codigo;
 	IF vid_prod=NULL
 		then
@@ -135,21 +138,23 @@ SET v_disponbles=0;
 				then
 				signal sqlstate '45000' set message_text ='LA CANTIDAD DE PRODUCTOS NO ES CORRECTA.';
 				else
-					SELECT existencias into v_disponbles from productos where id_producto=vid_prod;
-					IF p_cantidad>v_disponbles
+					SELECT existencias into v_disponibles from productos where id_producto=vid_prod;
+					IF p_cantidad>v_disponibles
 					then
 					signal sqlstate '45000' set message_text='LA CANTIDAD EXCEDE LA DISPONIBILIDAD.';
 					else
 						SELECT precio_venta into v_precio from productos where vid_prod=productos.id_producto;
 						SET v_subtotal=v_precio*p_cantidad;
 					  	SELECT id_ticket into v_ticket from tickets order by id_ticket desc LIMIT 1;
-					  	INSERT INTO ventas VALUES(NULL, vid_prod, p_cantidad, v_ticket, p_obs, v_subtotal);
+					  	INSERT INTO ventas VALUES(NULL, vid_prod, p_cantidad, v_ticket, v_subtotal);
 					  	UPDATE productos set existencias=existencias-p_cantidad where id_producto=vid_prod;
 	  					SELECT ('OK');	
 	  				end if;
   			end if;
   	end if;
 END;
+
+#CREADO
 
 
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=PROCEDIMIENTO PARA TERMINAR UNA VENTA
@@ -167,6 +172,8 @@ DECLARE v_total FLOAT;
 	SELECT ('VENTA CONCLUIDA.');
 END;
 
+#CREADO
+
 
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=PROCEDIMIENTO PARA REGISTRAR UN NUEVO PRODUCTO
 
@@ -174,7 +181,7 @@ DELIMITER //
 CREATE PROCEDURE nvo_prod(
 	p_codigo VARCHAR(45), #Se ecesita un código de barras
 	p_desc VARCHAR(45), #descripcion
-	pid_categoria INT, #una categoria
+	p_categoria VARCHAR(45), #una categoria
 	p_cantidad INT, #una cantidad de productos entrantes
 	p_costo FLOAT, # el costo del total de los productos entrantes
 	p_obs TEXT(100), #observaciones de la entrada
@@ -185,8 +192,8 @@ DECLARE v_codigo VARCHAR(45);
 DECLARE v_pa FLOAT;
 DECLARE v_pv FLOAT;
 DECLARE vid_catego INT;
-	SELECT count(id_categoria) into vid_catego from categorias where id_categoria=pid_categoria;
-	IF vid_catego<=0
+	SELECT id_categoria into vid_catego from categorias where descripcion_c LIKE p_categoria;
+	IF vid_catego=NULL
 		then
 		signal sqlstate '45000' set message_text='LA CATEGORIA NO ES CORRECTA.';
 		else
@@ -211,12 +218,13 @@ DECLARE vid_catego INT;
 												then
 												signal sqlstate '45000' set message_text='DEBE EXISTIR UN CÓDIGO PARA EL PRODUCTO.';
 												else
-													INSERT INTO productos VALUES(NULL, p_desc, pid_categoria, 0, 0, p_minimo, p_cantidad);
+													INSERT INTO productos VALUES(NULL, p_codigo, p_desc, vid_catego, 0, 0, p_minimo, p_cantidad);
 													SELECT id_producto into vid_prod from productos order by id_producto desc LIMIT 1;
 													INSERT INTO entradas VALUES(NULL, vid_prod, p_cantidad, p_costo, p_obs, NULL);
 													SET v_pa=p_costo/p_cantidad;
 													UPDATE productos set precio_adq=v_pa where id_producto=vid_prod;
 													SET v_pv=v_pa+(v_pa*.20);
+													UPDATE productos set precio_venta=v_pv where id_producto=vid_prod;
 													SELECT ('NUEVO PRODUCTO REGISTRADO.');
 											end if;
 									end if;
@@ -225,6 +233,7 @@ DECLARE vid_catego INT;
 			end if;
 	end if;
 END;
+#CREADO
 
 
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:PROCEDIMIENTO PARA REGISTRAR PRODUCTOS Y TALLAS 
@@ -252,6 +261,7 @@ DECLARE vid_prod INT;
 	end if;
 END;
 
+#CREADO
 
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:PROCEDIMIENTO PARA REGISTRAR UNA NUEVA TALLA
 
@@ -267,6 +277,7 @@ BEGIN
 	end if;
 END;
 
+#CREADO
 
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:PROCEDIMIENTO PARA REGISTRAR UNA NUEVA CATEGORIA
 
@@ -294,9 +305,11 @@ BEGIN
  	DECLARE v_cantidad INT;
  	SELECT cantidad from ventas WHERE id_venta=pid_venta;
  	SELECT id_producto into vid_prod FROM productos, ventas, tickets WHERE  productos.codigo=p_codigo and productos.id_producto=ventas.id_producto and ventas.id_venta=pid_venta;
-	UPDATE productos set existencias=existencias+p_cantidad where WHERE  productos.id_producto=vid_prod; # SE AGREGAN LA CANTIDAD DE ARTICULOS AL IVENTARIO
-	delete ventas WHERE ventas.id_venta=pid_venta;
+	UPDATE productos set existencias=existencias+p_cantidad where productos.id_producto=vid_prod; # SE AGREGAN LA CANTIDAD DE ARTICULOS AL IVENTARIO
+	delete from ventas WHERE ventas.id_venta=pid_venta;
 END;
+
+#CREADO
 
 
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:PROCEDIMIENTO PARA  REALIZAR UNA DEVOLUCION
@@ -320,8 +333,8 @@ SELECT cantidad into v_cantidad FROM productos, ventas, tickets WHERE  productos
 			IF v_cantidad<=p_cantidad
 			then
 				UPDATE ventas set cantidad=cantidad-v_cantidad where id_ticket=pid_ticket and id_producto=vid_prod; #E RESTA LA CANTIDAD DE´PRODUCTOS DEVUELTOS A LA VENTA QUE SE REALIZO
-				UPDATE productos set existencias=existencias+p_cantidad where WHERE  productos.id_producto=vid_prod; # SE AGREGAN LA CANTIDAD DE ARTICULOS AL IVENTARIO
-				SELECT precio_venta*p_cantidad into v_subtotal from productos, ventas, tickets where WHERE  productos.codigo=p_codigo and productos.id_producto=ventas.id_producto and ventas.id_ticket=pid_ticket; #SE OBTIENE CUÁNTO SE LE HA DE REGRESAR AL CLIENTE
+				UPDATE productos set existencias=existencias+p_cantidad where  productos.id_producto=vid_prod; # SE AGREGAN LA CANTIDAD DE ARTICULOS AL IVENTARIO
+				SELECT precio_venta*p_cantidad into v_subtotal from productos, ventas, tickets where   productos.codigo=p_codigo and productos.id_producto=ventas.id_producto and ventas.id_ticket=pid_ticket; #SE OBTIENE CUÁNTO SE LE HA DE REGRESAR AL CLIENTE
 				SELECT ('DEVOLUCIÓN PROCESADA, ENTREGUE AL CLIENTE LA CANTIDAD DE $'+v_subtotal+' PESOS.');
 			else
 				signal sqlstate '45000' set message_text='ESA CANTIDAD DE PRODUCTOS A DEVOLVER NO ES CORRECTA.';
@@ -329,7 +342,12 @@ SELECT cantidad into v_cantidad FROM productos, ventas, tickets WHERE  productos
 	end if;
 END;
 
+#CREADO
+
+
 =:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:PROCEDIMIENTO PARA MODIFICAR LA CANTIDAD DE PRODUCTOS EN UNA VENTA
+
+
 CREATE PROCEDURE mod_cantventa(
 	p_codigo INT,
 	p_cantidad INT)
@@ -352,6 +370,8 @@ BEGIN
 			end if;
 	end if;
 END;
+
+#CREADO
 
 
 :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:= BITÁCORAS :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=
@@ -400,14 +420,14 @@ CREATE TABLE bit_devoluciones(
 	cliente VARCHAR(45),
 	por_que VARCHAR(100));
 
-CREATE TRIGGER bnp #BITACORA DE AGREGACIÓN DE NUEVOS PRODUCTOS
+CREATE TRIGGER bit_nvosprods
 	after INSERT on productos
 	for each row
 	BEGIN
 	DECLARE v_subtotal;
-	SET v_subtotal=new.precio_adq*new.existencias;
+	SET v_subtotal=(new.precio_adq)*(new.existencias);
 	insert into bit_nvosprods VALUES(NULL, NULL, new.id_producto, new.precio_adq, new.existencias, v_subtotal);
-	END bnp;
+	END;
 
 CREATE TRIGGER bbp #BITACORA DE BAJA DE PRODUCTOS
 	before DELETE on productos

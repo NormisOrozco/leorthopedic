@@ -5,7 +5,6 @@
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="css/fonts.css">
 	<link rel="stylesheet" href="css/bootstrap.css">
-	<script type="text/javascript" src="js/script.js"></script>
 	<script type="text/javascript" src="js/jquery.js"></script>
 	<script type="text/javascript" src="js/bootstrap.js"></script>
 	<script type="text/javascript" src="js/jquery.validate.js"></script>
@@ -39,7 +38,10 @@
 		</tr>
 		<tr>
 			
-			<td><input type="text" class="campo_in" name="codigo"></td>
+			<td>
+				<input value="insert" name="action" id="action" type="hidden">
+				<input type="text" class="campo_in" name="codigo">
+			</td>
 			<td><a id="btn_add" href='#' class="btn btn-success"><span class="glyphicon glyphicon-plus"></span></a></td>
 			<td><input type="text" class="campo_in" name="cantidad"></td>
 			<td><input type="text" class="campo_in" name="costo"></td>
@@ -64,6 +66,7 @@
 	</div>
 </body>
 <aside id="container_modal"></aside>
+<aside id="container_modal_2"></aside>
 <script>
 get_all_entradas();
 		function get_all_entradas(){

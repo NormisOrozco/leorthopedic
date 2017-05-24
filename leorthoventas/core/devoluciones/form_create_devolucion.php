@@ -9,7 +9,7 @@
 					<h4 class="modal-title" id="myModalLabel">Devolver un producto</h4>
 				</div>
 				<div class="modal-body">
-					<form action="insert" style="background: none" method="post"  id="form_cortes" name="form_cortes">
+					<form action="insert" style="background: none" method="post"  id="form_devol" name="form_cortes">
 					<input type="text" name="ticket" placeholder="Folio del ticket" class="form-control">
 					<input type="text" name="codigo" placeholder="Código del producto a devolver" class="form-control">
 					<input type="text" name="cantidad" placeholder="Cantidad a devolver" class="form-control">
@@ -25,7 +25,9 @@
 	</div>
 	<script type="text/javascript">
 	$('#myModal').modal();	
-		$("#form_tallas").validate({
+
+
+		$("#form_devol").validate({
 				errorClass:"invalid",
 				rules:{
 					efectivo:{required:true},
@@ -34,7 +36,10 @@
 					efectivo:{required:"Introduzca el efectivo en caja para compararlo conlos datos del sistema."},
 				},
 				submitHandler: function(form){
-					alert("hola");
+					$.post("core/devoluciones/controller_devoluciones.php", {action:"insert"}, function(){
+						get_all();
+						$("#myModal").modal("hide");
+					});
 			}
 		});
 

@@ -18,7 +18,7 @@
 
 
 		case 'delete':
-			$sql='call nva_cancel('.$_POST["id_venta"].');'; #LLAMA A EJECUTAR EL PROCEDIMEINTO QUE CANCELA LA VENTA
+			$sql="call nva_cancel(".$_POST["id_venta"].");"; #LLAMA A EJECUTAR EL PROCEDIMEINTO QUE CANCELA LA VENTA
 			$conexion->query($sql);
 
 			break;
@@ -27,7 +27,9 @@
 			$cantidad=$_POST['cantidad'];
 			$costo=$_POST['costo'];
 			$observaciones=$_POST['observaciones'];
-			$sql='call nva_ent('.$codigo.','.$cantidad.','.$costo.',"'.$observaciones.'");'
+			$sql="call nva_ent(".$codigo.",".$cantidad.",".$costo.",'".$observaciones."');";
+			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
+			break;
 		/*
 		case 'get_one':
 			$sql='select *from alumnos where id_alumno="'.$_POST["id_alumno"].'";';
@@ -35,7 +37,6 @@
 		default:
 			# code...
 		#sql prueba 
-		$sql="call nva_catego('Piernas');";
 			break;
 	}
 

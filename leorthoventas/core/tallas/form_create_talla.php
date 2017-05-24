@@ -22,6 +22,7 @@
 	</div>
 	<script type="text/javascript">
 	$('#myModal').modal();	
+
 		$("#form_tallas").validate({
 				errorClass:"invalid",
 				rules:{
@@ -31,7 +32,9 @@
 					nombre:{required:"Se necesita un nombre para la nueva talla."},
 				},
 				submitHandler: function(form){
-					alert("hola");
+					$.post("core/tallas/controller_tallas.php", {action:"insert"}, function(){
+						get_all();
+					})
 			}
 		});
 

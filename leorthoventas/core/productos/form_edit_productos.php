@@ -9,7 +9,7 @@
 					<h4 class="modal-title" id="myModalLabel">Editar Producto</h4>
 				</div>
 				<div class="modal-body">
-					<form action="insert" style="background: none" method="post"  id="form_productos" name="form_productos">
+					<form action="insert" style="background: none" method="post"  id="form_edit-productos" name="form_productos">
 						<input type="text" name="codigo" placeholder="Código de barras" class="form-control">
 						<input type="text" name="descripcion" placeholder="Nombre del producto" class="form-control">
 						<select name="categoria" class="form-control" id="categoria">
@@ -28,7 +28,8 @@
 	</div>
 	<script type="text/javascript">
 	$('#myModal').modal();	
-		$("#form_productos").validate({
+
+		$("#form_edit-productos").validate({
 				errorClass:"invalid",
 				rules:{
 					codigo:{required:true},
@@ -45,7 +46,10 @@
 					minimo:{required:"Asigne el valor minimo que debe haber en stock"},
 				},
 				submitHandler: function(form){
-					alert("hola");
+					$.post("core/productos/controller_productos.php", {action:"update"}, function(){
+						get_all();
+						$('#myModal').modal("hide");
+					});
 			}
 		});
 

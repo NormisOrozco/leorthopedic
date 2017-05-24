@@ -10,10 +10,13 @@
 				</div>
 				<div class="modal-body">
 					<form action="insert" style="background: none" method="post"  id="form_productos" name="form_productos">
+						<input value="insert" name="action" id="action" type="hidden">
 						<input type="text" name="codigo" placeholder="Código de barras" class="form-control">
 						<input type="text" name="descripcion" placeholder="Nombre del producto" class="form-control">
+						<a id="btn_addcatego" href='#' class="btn btn-success"><span class="glyphicon glyphicon-plus"></span></a>
 						<select name="categoria" class="form-control" id="categoria">
 						 </select>
+
 						 <input type="text" name="cantidad" placeholder="Cantidad de entrantes" class="form-control">
 						<input type="text" name="costo" placeholder="Costo de la entrada" class="form-control">
 						<input type="text" name="observaciones" placeholder="Observaciones" class="form-control">
@@ -22,13 +25,38 @@
 				</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-						<button type="button" class="btn btn-primary" id="btn_aceptar">Aceptar</button>
+						<button type="button" class="btn btn-primary" id="btn_aceptar_prod">Aceptar</button>
 					</div>
 			</div>
 		</div>
 	</div>
+	
 	<script type="text/javascript">
 	$('#myModal').modal();	
+
+		get_all_categos();
+		function get_all_categos(){
+			$.post("core/categorias/controller_categos.php", {action:'get_all'}, function(res){
+				console.log(res);
+				var datos=JSON.parse(res);
+				var cod_html="<option disabled='true' selected='true'>Seleccione categoria</option>";
+				for (var i=0;i<datos.length;i++) 
+				{
+					var info=datos[i];
+					cod_html+="<option>"+info['descripcion_c']+"</option>";
+					//se insertan los datos a la tabla
+				}
+				$("#categoria").html(cod_html);
+			});
+		}
+		$('#btn_addcatego').click(function(){
+			$("#container_modal_2").load("core/categorias/form_create_catego.php");
+		});
+
+		$('#btn_aceptar_prod').click(function(){
+			$('#form_productos').submit();
+		});
+
 		$("#form_productos").validate({
 				errorClass:"invalid",
 				rules:{
@@ -37,7 +65,6 @@
 					categoria:{required:true},
 					cantidad:{required:true},
 					costo:{required:true},
-					observaciones:{required:false},
 					minimo:{required:true},
 				},
 				messages:{
@@ -49,9 +76,12 @@
 					minimo:{required:"Asigne el valor minimo que debe haber en stock"},
 				},
 				submitHandler: function(form){
-					alert("hola");
+					$.post("core/productos/controller_productos.php", $('#form_productos').serialize(), function(){
+						$('#myModal').modal("hide");
+					});
 			}
 		});
 
+		
 	</script>
-
+<script type="text/javascript" src="js/jquery.validate.js"></script>

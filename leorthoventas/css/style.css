@@ -484,3 +484,9 @@ header #labrep{
 #btn_newdev span{
     margin-right: 5px;
 }
+
+
+#btn_addcatego{
+    position:absolute;
+    margin-left: 25em;
+}

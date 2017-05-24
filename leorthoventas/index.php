@@ -5,7 +5,6 @@
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="css/fonts.css">
 	<link rel="stylesheet" href="css/bootstrap.css">
-	<script type="text/javascript" src="js/script.js"></script>
 	<script type="text/javascript" src="js/jquery.js"></script>
 	<script type="text/javascript" src="js/bootstrap.js"></script>
 	<script type="text/javascript" src="js/jquery.validate.js"></script>
@@ -25,15 +24,14 @@
 			<a id="btn_newdev" href='#' class="btn btn-warning"><span class="glyphicon glyphicon-repeat"></span>Devolución</a>
 		<label for="">Cliente</label><br>
 		<input type="text" placeholder="Nombre del Cliente" id="campo_nombre" name="campo_nombre"/><br>
-		<div class="boton" id="btn_emp" onclick="empieza()"><span class="icon-empezar"></span>Empezar
-	</div>
+		<button class="boton" id="btn_emp"><span class="icon-empezar"></span>Empezar</Button>
 	</form>
 	<div id="diventas" class="invisible">
 		<div id="venta_de">
 		
 		</div>
 		<hr>
-		<form action="" id="form_dos">
+		<form action="insert" id="form_dos">
 		<table id="tabla_nvo">
 			<tr>
 				<td>
@@ -45,6 +43,7 @@
 			</tr>
 			<tr>
 				<td>
+					<input value="insert_vta" name="action" id="action" type="hidden">
 					<input class="campo_in" type="text" name="campo_codigo" id="campo_codigo"/>
 				</td>
 				<td>
@@ -100,6 +99,28 @@
 		$("#container_modal").load("core/devoluciones/form_create_devolucion.php");
 	});
 
+
+	$("#form_uno").validate({
+		errorClass: "invalid",
+		rules:{
+			campo_nombre:{required:true},
+		},
+		messages:{
+			campo_nombre:{required:"Introduzca el nombre del cliente."},
+		},
+		submitHandler: function(form)
+		{
+
+				var nombre=document.getElementById('campo_nombre').value;
+			$.post("core/ventas/controller_ventas.php", {action:"insert_tkt", nombre:nombre}, function(){
+				document.getElementById('form_uno').classList.add('invisible');
+				document.getElementById('diventas').classList.remove("invisible");
+				var cod_html='<label style="font-size: 1.5em;">Venta para '+nombre+'.</label>'; 
+				document.getElementById('venta_de').innerHTML=cod_html;
+				document.getElementById('diventas').classList.add("visible");
+			});
+		}
+	});
 	$("#form_dos").validate({
 			errorClass:"invalid",
 			rules:{
@@ -111,9 +132,8 @@
 				campo_cantidad:{required:"Especifique la cantidad de productos."},
 			},
 			submitHandler: function(form){
-
 				$.post("core/ventas/controller_ventas.php", $('#form_dos').serialize(), function(){
-					get_all_ventas();
+						get_all_ventas();
 				});
 			}
 

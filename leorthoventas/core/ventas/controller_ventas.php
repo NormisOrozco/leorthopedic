@@ -19,7 +19,7 @@
 
 		case 'delete':
 			$sql='call nva_cancel('.$_POST["id_venta"].');'; #LLAMA A EJECUTAR EL PROCEDIMEINTO QUE CANCELA LA VENTA
-			$conexion->query($sql);
+			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
 
 			break;
 		/*
@@ -27,21 +27,37 @@
 			$sql='select *from alumnos where id_alumno="'.$_POST["id_alumno"].'";';
 			break;*/
 		case 'insert_tkt':
+			$nombre=$_POST['nombre'];
+			printf($nombre);
+			$sql="call nvo_ticket('".$nombre."');";
+			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
 			#inserta un nuevo ticket en la base de datos
 			break;
 
-		case 'isert_vta':
-			#ingresa una nueva venta en el ticket
+		case 'insert_vta':
+			$codigo=$_POST["campo_codigo"];
+			$cantidad=$_POST["campo_cantidad"];
+			$sql="call nva_venta(".$codigo.",".$cantidad.");";
+			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
 			break;
 
 		case 'update':
+			$codigo=$_POST["campo_codigo"];
+			$cantidad=$_POST["campo_cantidad"];
+			$sql="call mod_cantventa(".$codigo.",".$cantidad.");";
+			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
 			#actualiza la cantidad de productos en una venta
 			break;
 		case 'cancel':
+			$pid_venta=$_POST["id_venta"];
+			$sql="call nva_cancel(".$pid_venta.");";
+			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
 			#cancela una venta y la bitacora
 			break;
 
 		case 'finish':
+			$sql="call ter_venta();";
+			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
 			#termina la venta y calcula el ticket
 			break;
 

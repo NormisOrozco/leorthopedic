@@ -22,17 +22,23 @@
 	</div>
 	<script type="text/javascript">
 	$('#myModal').modal();	
-		$("#form_tallas").validate({
+
+
+		$("#form_cortes").validate({
 				errorClass:"invalid",
 				rules:{
 					efectivo:{required:true},
 				},
 				messages:{
-					efectivo:{required:"Introduzca el efectivo en caja para compararlo conlos datos del sistema."},
+					efectivo:{required:"Introduzca el efectivo en caja para compararlo con los datos del sistema."},
 				},
-				submitHandler: function(form){
-					alert("hola");
-			}
+				submitHandler: function(form)
+				{
+					$.post("core/cortes/controller_cortes.php", {action:"insert"}, function(){
+						get_all();
+						$("myModal").modal("hide");
+					});
+				}
 		});
 
 	</script>
