@@ -6,6 +6,11 @@ CREATE TABLE entradas (
 	observaciones TEXT(100), 
 	fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 
+CREATE TABLE rutas_catalogo(
+	id_ruta_catalogo INT PRIMARY KEY AUTO_INCREMENT, 
+	id_producto INT NOT NULL, 
+	ruta TEXT(255) NOT NULL);
+
 CREATE TABLE cortes(
 	id_corte INT PRIMARY KEY AUTO_INCREMENT,
 	fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -164,12 +169,11 @@ CREATE PROCEDURE ter_venta()
 BEGIN
 DECLARE vid_ticket INT;
 DECLARE v_total FLOAT;
-	SELECT id_ticket into vid_ticket from tickets order by id_ticket LIMIT 1; #SE OBTIENE EL ÚLTIMO TICKET
+	SELECT id_ticket into vid_ticket from tickets order by id_ticket desc LIMIT 1; #SE OBTIENE EL ÚLTIMO TICKET
 	SELECT SUM(subtotal) into v_total FROM ventas WHERE id_ticket=vid_ticket; #SE OBTIENE EL TOTAL DE LA VENTA QUE ESTÁ REGISRADA CON ESE TICKET
 	UPDATE tickets set total=v_total where id_ticket=vid_ticket; # SE AGREGA EL TOTAL DE LA VENTA AL TICKET
 	UPDATE tickets set fecha=NULL where id_ticket=vid_ticket; # SE ACTUALIZA LA FECHA DE EMISIÓN DEL TICKET
-	UPDATE tickets set procesado=1 where id_ticket=v_ticket; # INDICA QUE EL TICKET HA SIDO PROCESADO.
-	SELECT ('VENTA CONCLUIDA.');
+	UPDATE tickets set procesado=1 where id_ticket=vid_ticket; # INDICA QUE EL TICKET HA SIDO PROCESADO.
 END;
 
 #CREADO
@@ -182,12 +186,14 @@ CREATE PROCEDURE nvo_prod(
 	p_codigo VARCHAR(45), #Se ecesita un código de barras
 	p_desc VARCHAR(45), #descripcion
 	p_categoria VARCHAR(45), #una categoria
+	p_talla VARCHAR(45),
 	p_cantidad INT, #una cantidad de productos entrantes
 	p_costo FLOAT, # el costo del total de los productos entrantes
 	p_obs TEXT(100), #observaciones de la entrada
 	p_minimo INT) #minimo que debería haber en Stock
 BEGIN
 DECLARE vid_prod INT;
+DECLARE vid_talla INT;
 DECLARE v_codigo VARCHAR(45);
 DECLARE v_pa FLOAT;
 DECLARE v_pv FLOAT;
@@ -218,14 +224,21 @@ DECLARE vid_catego INT;
 												then
 												signal sqlstate '45000' set message_text='DEBE EXISTIR UN CÓDIGO PARA EL PRODUCTO.';
 												else
-													INSERT INTO productos VALUES(NULL, p_codigo, p_desc, vid_catego, 0, 0, p_minimo, p_cantidad);
-													SELECT id_producto into vid_prod from productos order by id_producto desc LIMIT 1;
-													INSERT INTO entradas VALUES(NULL, vid_prod, p_cantidad, p_costo, p_obs, NULL);
-													SET v_pa=p_costo/p_cantidad;
-													UPDATE productos set precio_adq=v_pa where id_producto=vid_prod;
-													SET v_pv=v_pa+(v_pa*.20);
-													UPDATE productos set precio_venta=v_pv where id_producto=vid_prod;
-													SELECT ('NUEVO PRODUCTO REGISTRADO.');
+													SELECT id_talla into vid_talla FROM tallas where tallas.desc_talla LIKE p_talla;
+													IF vid_talla=NULL 
+														then
+															signal sqlstate '45000' set message_text='LA TALLA NO ES VÁLIDA.';
+														else
+															INSERT INTO productos VALUES(NULL, p_codigo, p_desc, vid_catego, 0, 0, p_minimo, p_cantidad);
+															SELECT id_producto into vid_prod from productos where codigo=p_codigo;
+															INSERT into tallasprods VALUES(NULL, vid_prod, vid_talla);
+															INSERT INTO entradas VALUES(NULL, vid_prod, p_cantidad, p_costo, p_obs, NULL);
+															SET v_pa=p_costo/p_cantidad;
+															UPDATE productos set precio_adq=v_pa where id_producto=vid_prod;
+															SET v_pv=v_pa+(v_pa*.20);
+															UPDATE productos set precio_venta=v_pv where id_producto=vid_prod;
+															SELECT ('NUEVO PRODUCTO REGISTRADO.');
+													end if;
 											end if;
 									end if;
 							end if;
@@ -301,11 +314,7 @@ DELIMITER //
 CREATE PROCEDURE nva_cancel (
 	pid_venta INT)
 BEGIN
- 	DECLARE vid_prod INT;
- 	DECLARE v_cantidad INT;
- 	SELECT cantidad from ventas WHERE id_venta=pid_venta;
- 	SELECT id_producto into vid_prod FROM productos, ventas, tickets WHERE  productos.codigo=p_codigo and productos.id_producto=ventas.id_producto and ventas.id_venta=pid_venta;
-	UPDATE productos set existencias=existencias+p_cantidad where productos.id_producto=vid_prod; # SE AGREGAN LA CANTIDAD DE ARTICULOS AL IVENTARIO
+ 	
 	delete from ventas WHERE ventas.id_venta=pid_venta;
 END;
 
@@ -349,30 +358,55 @@ END;
 
 
 CREATE PROCEDURE mod_cantventa(
-	p_codigo INT,
+	pid_venta INT,
 	p_cantidad INT)
 BEGIN
-	DECLARE vid_venta INT;
 	DECLARE v_disponbles INT;
 	DECLARE vid_prod INT;
+	DECLARE v_cantantes INT;
+	DECLARE v_preciovta FLOAT;
+	SELECT cantidad into v_cantantes from ventas where id_venta=pid_venta;
 	IF p_cantidad<=0
 		then
 		signal sqlstate '45000' set message_text ='LA CANTIDAD DE PRODUCTOS NO ES CORRECTA.';
 		else
-			SELECT id_producto into vid_prod FROM productos WHERE  productos.codigo=p_codigo;
+			SELECT id_producto into vid_prod FROM ventas WHERE  ventas.id_venta=pid_venta;
+			UPDATE productos set existencias=existencias+v_cantantes where id_producto=vid_prod;
 			SELECT existencias into v_disponbles from productos where id_producto=vid_prod;
 			IF p_cantidad>v_disponbles
 				then
 				signal sqlstate '45000' set message_text='LA CANTIDAD EXCEDE LA DISPONIBILIDAD.';
 				else
-					SELECT id_venta into vid_venta FROM ventas order BY id_venta DESC LIMIT 1;
-					UPDATE ventas SET cantidad=p_cantidad WHERE id_venta=vid_venta;
+					UPDATE ventas SET cantidad=p_cantidad WHERE id_venta=pid_venta;
+					SELECT precio_venta into v_preciovta FROM productos where id_producto=vid_prod;
+					UPDATE ventas set subtotal=p_cantidad*v_preciovta;
+					UPDATE productos set existencias=existencias-p_cantidad where id_producto=vid_prod;
 			end if;
 	end if;
 END;
 
 #CREADO
 
+
+=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:PROCEDIMIENTO PARA EDITAR UN PRODUCTO
+
+
+CREATE PROCEDURE mod_prod(
+	p_codigo VARCHAR(45),
+	p_descripcion VARCHAR(45),
+	p_categoria VARCHAR(45),
+	p_talla VARCHAR(45),
+	p_minimo INT)
+BEGIN
+	DECLARE vid_catego INT;
+	DECLARE vid_talla INT;
+	DECLARE vid_prod INT;
+	SELECT id_categoria into vid_catego from categorias WHERE descripcion_c LIKE p_categoria;
+	SELECT id_talla into vid_talla FROM tallas WHERE desc_talla LIKE p_talla;
+	SELECT id_producto into vid_prod FROM productos WHERE  productos.codigo=p_codigo;
+		UPDATE productos SET descripcion_p=p_descripcion, id_categoria=vid_catego, minimo=p_minimo WHERE id_producto=vid_prod;
+		UPDATE tallasprods SET id_talla=vid_talla WHERE id_producto=vid_prod;
+END;
 
 :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:= BITÁCORAS :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=
 
@@ -450,26 +484,29 @@ CREATE TRIGGER bcanc{ #BITACORA DE CANCELACIONES
 	BEGIN
 }
 
-CREATE TRIGGER bcanc{ #BITACORA DE DEVOLUCIONES
-	before UPDATE on ventas
+CREATE TRIGGER bcanc #BITACORA DE DEVOLUCIONES
+	before DELETE on ventas
 	for each row
 	BEGIN
-}
+	DECLARE vid_prod INT;
+ 	DECLARE v_cantidad INT;
+ 	SELECT cantidad into v_cantidad from ventas WHERE id_venta=old.id_venta;
+ 	SELECT id_producto into vid_prod FROM productos, ventas WHERE productos.id_producto=ventas.id_producto and ventas.id_venta=old.id_venta;
+	UPDATE productos set existencias=existencias+v_cantidad where productos.id_producto=vid_prod; # SE AGREGAN LA CANTIDAD DE ARTICULOS AL IVENTARIO
+end;
 
 
-:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:= PROCEDIMIENTOS PARA VISTAS :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=
+:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:= VISTAS :=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=
 
-#VISTA QUE OBTIENE LOS DATOS DE PRODUCTOS EN UNA VENTA EN EL ORDEN (codigo, producto, precio, cantidad, subtotal) en función del ultimo ticket creado
-CREATE PROCEDURE ver_venta()
-BEGIN
-DECLARE vid_ticket INT;
-	SELECT id_ticket into vid_ticket from tickets order by id_ticket limit 1; #SE OBTIENE EL ULTIMO TICKET CREADO
+#VISTA QUE OBTIENE LOS DATOS DE PRODUCTOS EN UNA VENTA EN EL ORDEN (codigo, producto, precio, cantidad, subtotal, id_venta) en función del ultimo ticket creado
+CREATE VIEW show_ventas as(
 	SELECT 
 		codigo, 
 		CONCAT(productos.descripcion_p, CONCAT(" ", tallas.desc_talla)) as producto, #SE CONCATENA EL PRODUCTO Y SU TALLA
 		precio_venta as precio, 
 		ventas.cantidad as cantidad, 
-		ventas.subtotal as subtotal
+		ventas.subtotal as subtotal,
+		id_venta
 	FROM 
 		productos,
 		tallasprods,
@@ -479,8 +516,8 @@ DECLARE vid_ticket INT;
 		productos.id_producto=tallasprods.id_producto and
 		tallas.id_talla=tallasprods.id_talla and
 		productos.id_producto=ventas.id_producto and
-		ventas.id_ticket=vid_ticket;
-END;
+		ventas.id_ticket=(SELECT id_ticket from tickets order by id_ticket desc LIMIT 1)
+);
 
 #VISTA QUE MUESTRA ID_PRODUCTO, NOMBRE, CANTIDAD, FECHA, OBSERACIONES
 CREATE VIEW v_entradas as(
@@ -495,3 +532,64 @@ FROM
 	entradas
 WHERE
 	entradas.id_producto=productos.id_producto);
+
+#VISTA QUE OBTIENE DATOS DE PRODUCTOS EN EL ORDEN CODIGO PRODUCTO, TALLA, PRECIO, DISPONIBLES
+
+CREATE VIEW vista_productos as(
+SELECT
+	productos.codigo as codigo,
+	productos.descripcion_p as producto,
+	tallas.desc_talla as talla,
+	productos.precio_venta as precio,
+	productos.existencias as disponibles
+FROM 
+	productos, tallasprods, tallas, categorias
+WHERE
+	productos.id_producto=tallasprods.id_producto and
+	tallasprods.id_talla=tallas.id_talla and
+	productos.id_categoria=categorias.id_categoria
+	);
+
+#VISTA QUE OBTIENE LOS PRODUCTOS POR AGOTARSE SIN DETALLES
+CREATE VIEW vista_pagot as(
+SELECT 
+	CONCAT(productos.descripcion_p,CONCAT(" ",tallas.desc_talla as talla)) as descripcion,
+	productos.existencias as disponibles
+FROM
+	productos, tallasprods, tallas, categorias
+WHERE
+	productos.id_producto=tallasprods.id_producto and
+	tallasprods.id_talla=tallas.id_talla and
+	productos.id_categoria=categorias.id_categoria and
+	productos.existencias<=productos.minimo;
+	);
+
+#VISTA QUE OBTIENE LOS DATOS DE LAS ENTRADAS EN ORDEN PRODUCTO, CANTIDAD, FECHA, OBSERVACIONES
+CREATE VIEW vista_entradas as(
+SELECT 
+	productos.descripcion_p as producto,
+	entradas.cantidad as cantidad,
+	entradas.fecha as fecha,
+	entradas.observaciones as observaciones
+FROM
+	productos, entradas
+WHERE
+	productos.id_producto=entradas.id_producto
+	);
+
+#VISTA QUE OBTIENE DATOS DE PRODUCTOS EN EL ORDEN CODIGO PRODUCTO, CATEGORIA, TALLA, PRECIO, MINIMO
+
+CREATE VIEW vista_editproductos as(
+SELECT
+	productos.codigo as codigo,
+	productos.descripcion_p as producto,
+	categorias.descripcion_c as categoria,
+	tallas.desc_talla as talla,
+	productos.minimo as minimo
+FROM 
+	productos, tallasprods, tallas, categorias
+WHERE
+	productos.id_producto=tallasprods.id_producto and
+	tallasprods.id_talla=tallas.id_talla and
+	productos.id_categoria=categorias.id_categoria
+	);

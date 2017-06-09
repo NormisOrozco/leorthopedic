@@ -8,7 +8,7 @@
 	require_once("../conexion.php"); # NECESITA EN CONECTOR ANTES DE EMPEZAR
 	switch ($_POST['action']) {
 		case 'get_all':
-			$sql="call ver_venta();"; #MANDA LLAMAR AL PROCEDIMIENTO DE VER VENTAS QUE SE ALMACENA EN LA BASE DE DATOS
+			$sql="select *from show_ventas;"; #MANDA LLAMAR A LA VISTA QUE SE ALMACENA EN LA BASE DE DATOS
 			$result=$conexion->query($sql); #OBTIENE EL RESULTADO DEL QUERY EN LA VARIABLE RESULT
 			$datos=array();#SE CREA UN ARRAY QUE SE LLAMA DATOS
 			while($row=$result->fetch_array()) #MIENTRAS SE CREA UNA VARIABLE LLAMADA ROW PARA CADA FILA
@@ -18,7 +18,7 @@
 
 
 		case 'delete':
-			$sql='call nva_cancel('.$_POST["id_venta"].');'; #LLAMA A EJECUTAR EL PROCEDIMEINTO QUE CANCELA LA VENTA
+			$sql='delete from ventas where id_venta='.$_POST["id_venta"].';'; #LLAMA A EJECUTAR EL PROCEDIMEINTO QUE CANCELA LA VENTA
 			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
 
 			break;
@@ -35,19 +35,29 @@
 			break;
 
 		case 'insert_vta':
-			$codigo=$_POST["campo_codigo"];
-			$cantidad=$_POST["campo_cantidad"];
-			$sql="call nva_venta(".$codigo.",".$cantidad.");";
-			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
+			$p_codigo=$_POST["campo_codigo"];
+			$p_cantidad=$_POST["campo_cantidad"];
+			$sql="call nva_venta(".$p_codigo.",".$p_cantidad.");";
+			$result=$conexion->query($sql)or trigger_error($conexion->error);
 			break;
 
+		case 'get_total':
+			$sql_total="select sum(subtotal) as total from ventas where id_ticket=(select id_ticket from tickets order by id_ticket desc limit 1);";
+			$result=$conexion->query($sql_total)or trigger_error($conexion->error);
+			$datos=array();#SE CREA UN ARRAY QUE SE LLAMA DATOS
+			while($row=$result->fetch_array()) #MIENTRAS SE CREA UNA VARIABLE LLAMADA ROW PARA CADA FILA
+				$datos[]=$row; #ESTA  SE GUARDA EN EL ARREGLO DE DATOS
+			print_r(json_encode($datos)); #CONTROL,IMPRIME EL ARREGLO EN CONSOLA
+			break;
+			
 		case 'update':
-			$codigo=$_POST["campo_codigo"];
-			$cantidad=$_POST["campo_cantidad"];
-			$sql="call mod_cantventa(".$codigo.",".$cantidad.");";
+			$id_venta=$_POST["id_venta"];
+			$cantidad=$_POST["cantidad"];
+			$sql="call mod_cantventa(".$id_venta.",".$cantidad.");";
 			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
 			#actualiza la cantidad de productos en una venta
 			break;
+
 		case 'cancel':
 			$pid_venta=$_POST["id_venta"];
 			$sql="call nva_cancel(".$pid_venta.");";
@@ -59,6 +69,16 @@
 			$sql="call ter_venta();";
 			$result=$conexion->query($sql)or trigger_error($conexion->error."[$sql]");
 			#termina la venta y calcula el ticket
+			break;
+
+		case 'get_cantidad':
+			$pid_venta=$_POST['id_venta'];
+			$sql="Select cantidad from ventas where id_venta=".$pid_venta.";";
+			$result=$conexion->query($sql)or trigger_error($conexion->error);
+			$datos=array();#SE CREA UN ARRAY QUE SE LLAMA DATOS
+			while($row=$result->fetch_array()) #MIENTRAS SE CREA UNA VARIABLE LLAMADA ROW PARA CADA FILA
+				$datos[]=$row; #ESTA  SE GUARDA EN EL ARREGLO DE DATOS
+			print_r(json_encode($datos)); #CONTROL,IMPRIME EL ARREGLO EN CONSOLA
 			break;
 
 		default:

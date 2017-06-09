@@ -16,7 +16,8 @@
 						<a id="btn_addcatego" href='#' class="btn btn-success"><span class="glyphicon glyphicon-plus"></span></a>
 						<select name="categoria" class="form-control" id="categoria">
 						 </select>
-
+						<select name="talla" id="talla" class="form-control">
+						</select>
 						 <input type="text" name="cantidad" placeholder="Cantidad de entrantes" class="form-control">
 						<input type="text" name="costo" placeholder="Costo de la entrada" class="form-control">
 						<input type="text" name="observaciones" placeholder="Observaciones" class="form-control">
@@ -49,6 +50,22 @@
 				$("#categoria").html(cod_html);
 			});
 		}
+
+		get_all_tallas();
+		function get_all_tallas(){
+			$.post("core/tallas/controller_tallas.php", {action:"get_all"}, function(res){
+				console.log(res);
+				var datos=JSON.parse(res);
+				var cod_html="<option disabled='true'>Seleccione talla</option>";
+				for(var i=0;i<datos.length;i++)
+				{
+					var info=datos[i];
+					cod_html+="<option>"+info['desc_talla']+"</option>";
+				}
+				$('#talla').html(cod_html);
+			});
+		}
+		
 		$('#btn_addcatego').click(function(){
 			$("#container_modal_2").load("core/categorias/form_create_catego.php");
 		});
@@ -81,7 +98,5 @@
 					});
 			}
 		});
-
-		
 	</script>
 <script type="text/javascript" src="js/jquery.validate.js"></script>

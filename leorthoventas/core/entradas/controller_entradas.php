@@ -8,15 +8,14 @@
 	require_once("../conexion.php"); # NECESITA EN CONECTOR ANTES DE EMPEZAR
 	switch ($_POST['action']) {
 		case 'get_all':
-			$sql="call ver_venta();"; #MANDA LLAMAR AL PROCEDIMIENTO DE VER VENTAS QUE SE ALMACENA EN LA BASE DE DATOS
+			$sql="SELECT *from vista_entradas"; #MANDA LLAMAR LA EJECUCIÓN DE LA VISTA DE ENTRADAS
 			$result=$conexion->query($sql); #OBTIENE EL RESULTADO DEL QUERY EN LA VARIABLE RESULT
 			$datos=array();#SE CREA UN ARRAY QUE SE LLAMA DATOS
 			while($row=$result->fetch_array()) #MIENTRAS SE CREA UNA VARIABLE LLAMADA ROW PARA CADA FILA
 				$datos[]=$row; #ESTA  SE GUARDA EN EL ARREGLO DE DATOS
 			print_r(json_encode($datos)); #CONTROL,IMPRIME EL ARREGLO EN CONSOLA
 			break;
-
-
+			
 		case 'delete':
 			$sql="call nva_cancel(".$_POST["id_venta"].");"; #LLAMA A EJECUTAR EL PROCEDIMEINTO QUE CANCELA LA VENTA
 			$conexion->query($sql);
@@ -39,6 +38,5 @@
 		#sql prueba 
 			break;
 	}
-
 	$conexion->close();
  ?>

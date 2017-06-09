@@ -26,14 +26,30 @@
 	<script type="text/javascript">
 	$('#myModal').modal();	
 
+	$('#btn_aceptar').click(function(){
+		$('#form_devol').submit();
+	});
 
 		$("#form_devol").validate({
 				errorClass:"invalid",
 				rules:{
-					efectivo:{required:true},
+					ticket:{required:true,
+							digits:true},
+					codigo:{required:true,
+							alphanumeric:true,
+							maxlength:45},
+					cantidad:{required:true,
+							digits:true},
+					causa:{required:true,
+							lettersonly:true}
 				},
 				messages:{
-					efectivo:{required:"Introduzca el efectivo en caja para compararlo conlos datos del sistema."},
+					ticket:{required:"Ingrese el folio del ticket",
+							digits:"Sólo dígitos"},
+					codigo:{required:"Ingrese el código del producto"},
+					cantidad:{required:"Introduzca una cantidad",
+							digits:"Sólo dígitos"},
+					causa:{required:"Introduzca una causa"}
 				},
 				submitHandler: function(form){
 					$.post("core/devoluciones/controller_devoluciones.php", {action:"insert"}, function(){

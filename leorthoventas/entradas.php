@@ -76,7 +76,7 @@ get_all_entradas();
 				for(var i=0;i<datos.length;i++)
 				{
 					var info=datos[i];
-					cod_html+="<tr><td> <label>"+info["producto"]+" </label></td><td> <label>"+info["cantidad"]+" </label></td><td> <label>"+info["fecha"]+" </label></td><td> <label>"+info["observaciones"]+" </label></td><td><a href='!#'class='btn_deta' data-id='"+info["id_producto"]+"'><span class='botones icon-info'></span>Detalles</a></td></div></tr>";
+					cod_html+="<tr><td> <label>"+info["producto"]+" </label></td><td> <label>"+info["cantidad"]+" </label></td><td> <label>"+info["fecha"]+" </label></td><td><label>"+info["observaciones"]+"</label></td><td><div class='btn_deta btn btn-warning'><span class='icon-info'></span></div></td></tr>";
 					$("#content_table").html(cod_html);
 				}
 			});	
@@ -104,7 +104,7 @@ get_all_entradas();
 
 	$('#btn_add').click(function(){
 		$('#container_modal').load("core/productos/form_create_productos.php");
-	})
+	});
 	</script>
 
 </html>
